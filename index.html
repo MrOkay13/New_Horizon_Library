@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Horizon International School Library</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- PapaParse for CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo-container">
+            <span class="logo-text">📚 NHIS Library</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#catalog">Catalog</a></li>
+            <li><a href="#gallery">Gallery</a></li>
+            <li><a href="#media">Videos</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <!-- Background Video -->
+        <video class="hero-video" autoplay muted loop playsinline>
+            <source src="hero_bg.mp4" type="video/mp4">
+        </video>
+        <!-- Dark Overlay -->
+        <div class="hero-overlay"></div>
+
+        <div class="hero-content">
+            <h1>Discover Endless Worlds</h1>
+            <p>Welcome to the New Horizon International School Library. Your gateway to knowledge, imagination, and learning.</p>
+            
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search for books by title, author, or keyword...">
+                <button id="searchBtn" class="search-btn">Search</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section">
+        <div class="section-header">
+            <h2>About Our Library</h2>
+            <p>Inspiring creativity, focus, and a lifelong love for learning</p>
+        </div>
+        
+        <div class="about-content">
+            <div class="about-card">
+                <h3>Library Organization</h3>
+                <p>Our library collection is carefully classified using the Dewey Decimal Classification (DDC) system and sorted alphabetically. This structured approach helps students effortlessly learn subject categories while easily locating their favorite reads.</p>
+            </div>
+            
+            <div class="about-card col-span-2">
+                <h3>Enriching Monthly Activities</h3>
+                <p>To enrich young minds, we organize 12 exciting, grade-wide activities annually—one every month alongside regular book issuances. These events are designed to spark imagination and boost focus. Some of our favorites include:</p>
+                <ul class="activity-list">
+                    <li><strong>Book & Author Talks:</strong> Deep dives into fascinating literary worlds.</li>
+                    <li><strong>Dice Roll Story Relay:</strong> A thrilling circle game where a dice roll decides who continues the story. Stuck? Use one of your two lifelines to draw a random inspiration slip from the center!</li>
+                    <li><strong>Literary Tic-Tac-Toe:</strong> A life-sized board game where claiming a tile requires completing a fun, book-related task.</li>
+                    <li><strong>Character Cut-Out Bookmark Making:</strong> Letting creativity shine through hands-on crafting.</li>
+                    <li><strong>Book Character Debates:</strong> Defend your champion based on their unique talents and powers. Imagine Geronimo Stilton, the brilliant Italian mouse detective, going head-to-head with Naruto, the powerful ninja!</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Catalog Section -->
+    <section id="catalog" class="section">
+        <div class="section-header">
+            <h2>Library Catalog Search Results</h2>
+            <p>Explore our active inventory</p>
+        </div>
+        
+        <!-- Search Results Details -->
+        <div id="searchResults" class="catalog-grid" style="display: none;">
+            <!-- Dynamically populated from JS -->
+        </div>
+
+        <div id="catalogCategories" class="catalog-grid">
+             <div class="card">
+                <div class="card-icon">📖</div>
+                <div class="card-title">Books & Journals</div>
+                <div class="card-desc">Access thousands of fiction, non-fiction books, and academic journals available for checkout.</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-icon">💻</div>
+                <div class="card-title">Digital Resources</div>
+                <div class="card-desc">Browse our collection of e-books, online encyclopedias, and digital academic databases.</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-icon">🎓</div>
+                <div class="card-title">Study Materials</div>
+                <div class="card-desc">Find syllabus-aligned reference materials, past papers, and study guides for all grades.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pictures Section -->
+    <section id="gallery" class="section">
+        <div class="section-header">
+            <h2>Library Gallery</h2>
+            <p>Glimpses of our reading spaces, events, and student activities</p>
+        </div>
+        
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="lib1.jpg" alt="Our Library Space">
+                <div class="gallery-caption">Our Library Space</div>
+            </div>
+            <div class="gallery-item">
+                <img src="lib2.jpg" alt="Fiction">
+                 <div class="gallery-caption">Fiction</div>
+            </div>
+            <div class="gallery-item">
+                <img src="lib3.jpg" alt="Magazine Corner">
+                 <div class="gallery-caption">Magazine Corner</div>
+            </div>
+            <div class="gallery-item">
+                <img src="lib4.jpg" alt="Study Area">
+                 <div class="gallery-caption">Study Area</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Videos Section -->
+    <section id="media" class="section">
+        <div class="section-header">
+            <h2>Video Resources</h2>
+            <p>Educational videos, library tutorials, and recorded guest lectures</p>
+        </div>
+        
+        <div class="video-grid">
+            <div class="video-item" style="background: linear-gradient(to right, #2b3040, #161b22);">
+                <div class="play-button"></div>
+                <div style="position: absolute; bottom: 20px; left: 20px;">
+                    <h3 style="color: white; font-size: 1.1rem; margin-bottom: 5px;">How to use the Digital Catalog</h3>
+                    <span style="font-size: 0.85rem;">Library Orientation • 5:24</span>
+                </div>
+            </div>
+            
+            <div class="video-item" style="background: linear-gradient(to right, #382b40, #161b22);">
+                <div class="play-button"></div>
+                 <div style="position: absolute; bottom: 20px; left: 20px;">
+                    <h3 style="color: white; font-size: 1.1rem; margin-bottom: 5px;">Author Meet & Greet Highlights</h3>
+                    <span style="font-size: 0.85rem;">Events • 12:40</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 New Horizon International School Library. All rights reserved.</p>
+        <p style="margin-top: 10px; font-size: 0.9em;">Designed with modern web practices</p>
+    </footer>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox">
+        <span class="lightbox-close">&times;</span>
+        <img class="lightbox-content" id="lightbox-img">
+        <div id="lightbox-caption" class="lightbox-caption"></div>
+    </div>
+
+    <!-- Script for handling the inventory CSV and search -->
+    <script>
+        let libraryData = [];
+
+        // Fetch and parse the CSV data
+        fetch('inventory_data.csv')
+            .then(response => response.text())
+            .then(csvText => {
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        libraryData = results.data;
+                        console.log("Loaded " + libraryData.length + " books from inventory.");
+                    }
+                });
+            })
+            .catch(error => console.error("Could not load inventory data:", error));
+
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchResultsContainer = document.getElementById('searchResults');
+        const catalogCategories = document.getElementById('catalogCategories');
+
+        let currentResults = [];
+        let displayLimit = 100;
+
+        function performSearch() {
+            const query = searchInput.value.toLowerCase().trim();
+            if (!query) {
+                searchResultsContainer.style.display = 'none';
+                catalogCategories.style.display = 'grid';
+                return;
+            }
+
+            // Filter data
+            currentResults = libraryData.filter(item => {
+                const title = (item['Book Name(*)'] || '').toLowerCase();
+                const author = (item['Author'] || '').toLowerCase();
+                const keywords = (item['Keywords'] || '').toLowerCase();
+                const subject = (item['Subject(*)'] || '').toLowerCase();
+                const accession = (item['Accession Number'] || '').toLowerCase();
+                
+                return title.includes(query) || author.includes(query) || keywords.includes(query) || subject.includes(query) || accession.includes(query);
+            });
+
+            displayLimit = 100;
+            displayResults(query);
+        }
+
+        function displayResults(query) {
+            catalogCategories.style.display = 'none';
+            searchResultsContainer.style.display = 'grid';
+            searchResultsContainer.innerHTML = '';
+
+            if (currentResults.length === 0) {
+                searchResultsContainer.innerHTML = `<div class="card" style="grid-column: 1 / -1; text-align: center;">
+                    <div class="card-icon">🔍</div>
+                    <div class="card-title">No Results Found</div>
+                    <div class="card-desc">We couldn't find any books matching "${query}". Try different keywords.</div>
+                </div>`;
+                return;
+            }
+
+            // Show results up to display limit
+            const displayCount = Math.min(currentResults.length, displayLimit);
+            
+            for (let i = 0; i < displayCount; i++) {
+                const book = currentResults[i];
+                const title = book['Book Name(*)'] || 'Unknown Title';
+                const author = book['Author'] || 'Unknown Author';
+                const subject = book['Subject(*)'] || 'General';
+                const acc = book['Accession Number'] || '';
+                
+                const card = document.createElement('div');
+                card.className = 'card inventory-card';
+                card.innerHTML = `
+                    <div class="card-icon" style="font-size: 2rem;">📚</div>
+                    <div class="card-title">${title}</div>
+                    <div class="card-desc">
+                        <strong>Author:</strong> ${author}<br>
+                        <strong>Subject:</strong> ${subject}<br>
+                        <strong>Ref:</strong> <span style="font-size:0.85em; opacity:0.8">${acc}</span>
+                    </div>
+                `;
+                searchResultsContainer.appendChild(card);
+            }
+
+            if (currentResults.length > displayLimit) {
+                const moreCard = document.createElement('div');
+                moreCard.className = 'card';
+                moreCard.style.display = 'flex';
+                moreCard.style.alignItems = 'center';
+                moreCard.style.justifyContent = 'center';
+                moreCard.style.cursor = 'pointer';
+                moreCard.style.border = '2px dashed var(--primary)';
+                moreCard.onclick = function() {
+                    displayLimit += 100;
+                    displayResults(query);
+                };
+                moreCard.innerHTML = `<div class="card-desc" style="text-align: center; color: var(--primary); font-weight: bold; font-size: 1.1rem;">➕ Load More Results<br><span style="font-size: 0.8em; color: var(--text-muted); font-weight: normal;">(${currentResults.length - displayLimit} remaining)</span></div>`;
+                searchResultsContainer.appendChild(moreCard);
+            }
+        }
+
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        // Lightbox functionality
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxCaption = document.getElementById('lightbox-caption');
+        const lightboxClose = document.querySelector('.lightbox-close');
+        
+        document.querySelectorAll('.gallery-item img').forEach(img => {
+            img.style.cursor = 'zoom-in';
+            img.addEventListener('click', function() {
+                lightbox.style.display = 'flex';
+                // Trigger reflow for animation
+                setTimeout(() => lightbox.classList.add('active'), 10);
+                lightboxImg.src = this.src;
+                lightboxCaption.innerText = this.nextElementSibling.innerText;
+            });
+        });
+
+        const closeLightbox = () => {
+            lightbox.classList.remove('active');
+            setTimeout(() => lightbox.style.display = 'none', 300);
+        };
+
+        lightboxClose.addEventListener('click', closeLightbox);
+        lightbox.addEventListener('click', (e) => {
+            if(e.target === lightbox) closeLightbox();
+        });
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Escape' && lightbox.style.display === 'flex') closeLightbox();
+        });
+    </script>
+</body>
+</html>
