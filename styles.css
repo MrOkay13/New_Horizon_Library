@@ -172,6 +172,7 @@ body {
   display: flex;
   width: 100%;
   max-width: 600px;
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 50px;
@@ -215,6 +216,51 @@ body {
 .search-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px var(--primary-glow);
+}
+
+/* Autocomplete Dropdown */
+.autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  width: 100%;
+  max-height: 250px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  padding: 0.5rem 0;
+  text-align: left;
+}
+
+.autocomplete-item {
+  padding: 0.75rem 1.5rem;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 0.95rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover {
+  background: rgba(88, 166, 255, 0.15);
+}
+
+.autocomplete-item strong {
+  color: var(--primary);
 }
 
 /* Sections Grid Layout */

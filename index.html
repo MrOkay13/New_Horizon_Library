@@ -41,8 +41,9 @@
             <p>Welcome to the New Horizon International Primary School Library. Your gateway to knowledge, imagination, and learning.</p>
             
             <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="Search for books by title, author, or keyword...">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search for books by title, author, or keyword..." autocomplete="off">
                 <button id="searchBtn" class="search-btn">Search</button>
+                <div id="autocomplete-results" class="autocomplete-dropdown"></div>
             </div>
         </div>
     </section>
@@ -221,6 +222,9 @@
 
             displayLimit = 100;
             displayResults(query);
+            
+            // Scroll to catalog section automatically
+            document.getElementById('catalog').scrollIntoView({ behavior: 'smooth' });
         }
 
         function displayResults(query) {
@@ -280,7 +284,93 @@
 
         searchBtn.addEventListener('click', performSearch);
         searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') performSearch();
+            if (e.key === 'Enter') {
+                autocompleteContainer.style.display = 'none';
+                performSearch();
+            }
+        });
+
+        // --- Autocomplete Logic ---
+        const autocompleteContainer = document.getElementById('autocomplete-results');
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            
+            // Clear and hide if empty
+            if (!query) {
+                autocompleteContainer.style.display = 'none';
+                autocompleteContainer.innerHTML = '';
+                return;
+            }
+
+            // Filter for matching titles only for autocomplete suggestions
+            let suggestions = [];
+            for (let i = 0; i < libraryData.length; i++) {
+                const title = (libraryData[i]['Book Name(*)'] || '').toLowerCase();
+                // If title includes query, add to suggestions
+                if (title.includes(query)) {
+                    suggestions.push(libraryData[i]);
+                }
+            }
+            
+            // Sort alphabetically by title, ignoring leading articles (A, An, The)
+            const stripArticles = (title) => {
+                const lowerTitle = (title || '').toLowerCase().trim();
+                const articles = ['the ', 'a ', 'an '];
+                for (let article of articles) {
+                    if (lowerTitle.startsWith(article)) {
+                        return lowerTitle.slice(article.length).trim();
+                    }
+                }
+                return lowerTitle;
+            };
+
+            suggestions.sort((a, b) => {
+                const titleA = stripArticles(a['Book Name(*)']);
+                const titleB = stripArticles(b['Book Name(*)']);
+                return titleA.localeCompare(titleB);
+            });
+            
+            // Take only the top 8
+            suggestions = suggestions.slice(0, 8);
+
+            // If no suggestions, hide
+            if (suggestions.length === 0) {
+                autocompleteContainer.style.display = 'none';
+                return;
+            }
+
+            // Build HTML
+            autocompleteContainer.innerHTML = '';
+            suggestions.forEach(book => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                
+                // Highlight the matching part
+                const originalTitle = book['Book Name(*)'];
+                const regex = new RegExp(`(${query})`, 'gi');
+                const highlightedTitle = originalTitle.replace(regex, "<strong>$1</strong>");
+                
+                div.innerHTML = `📚 <span>${highlightedTitle} <span style="font-size: 0.8em; color: var(--text-muted);">by ${book['Author'] || 'Unknown'}</span></span>`;
+                
+                // On click, populate search and run it
+                div.addEventListener('click', function() {
+                    searchInput.value = originalTitle;
+                    autocompleteContainer.style.display = 'none';
+                    performSearch();
+                });
+                
+                autocompleteContainer.appendChild(div);
+            });
+
+            autocompleteContainer.style.display = 'flex';
+        });
+
+        // Hide autocomplete when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !autocompleteContainer.contains(e.target)) {
+                autocompleteContainer.style.display = 'none';
+            }
         });
 
         // Lightbox functionality
