@@ -185,6 +185,7 @@ html, body {
   animation: fadeUp 1s ease-out 0.4s backwards;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   transition: border-color 0.3s, box-shadow 0.3s;
+  z-index: 105; /* Ensures the whole container context sits above the grids below */
 }
 
 .search-container:focus-within {
@@ -235,8 +236,8 @@ html, body {
   border: 1px solid var(--border);
   border-radius: 16px;
   overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  z-index: 100;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  z-index: 9999; /* Forces dropdown OVER everything else */
   display: none;
   flex-direction: column;
   padding: 0.5rem 0;
@@ -292,6 +293,7 @@ html, body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
+  margin-top: 2rem;
 }
 
 .card {
