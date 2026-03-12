@@ -330,6 +330,12 @@
         searchInput.addEventListener('input', function() {
             const query = this.value.toLowerCase().trim();
             
+            // Hide previous results while typing a new search
+            searchResultsContainer.style.display = 'none';
+            if (!query) {
+                catalogCategories.style.display = 'grid';
+            }
+            
             // Clear and hide if empty
             if (!query) {
                 autocompleteContainer.style.display = 'none';
@@ -509,6 +515,9 @@
         refSearchInput.addEventListener('input', function() {
             const query = this.value.toLowerCase().trim();
             
+            // Hide previous reference results while typing a new search
+            refSearchResultsContainer.style.display = 'none';
+
             if (!query) {
                 refAutocompleteContainer.style.display = 'none';
                 return;
