@@ -6,15 +6,17 @@
     <title>New Horizon International School Library</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- AOS CSS for Scroll Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <!-- PapaParse for CSV parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
 <body>
 
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav class="navbar" data-aos="fade-down" data-aos-duration="1000">
         <div class="logo-container">
-            <span class="logo-text">📚 NHIS Library</span>
+            <span class="logo-text">📚 NHIS Primary Library</span>
         </div>
         <ul class="nav-links">
             <li><a href="#home">Home</a></li>
@@ -34,9 +36,9 @@
         <!-- Dark Overlay -->
         <div class="hero-overlay"></div>
 
-        <div class="hero-content">
+        <div class="hero-content" data-aos="zoom-in" data-aos-duration="1500">
             <h1>Discover Endless Worlds</h1>
-            <p>Welcome to the New Horizon International School Library. Your gateway to knowledge, imagination, and learning.</p>
+            <p>Welcome to the New Horizon International Primary School Library. Your gateway to knowledge, imagination, and learning.</p>
             
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="Search for books by title, author, or keyword...">
@@ -47,18 +49,18 @@
 
     <!-- About Section -->
     <section id="about" class="section">
-        <div class="section-header">
+        <div class="section-header" data-aos="fade-up">
             <h2>About Our Library</h2>
             <p>Inspiring creativity, focus, and a lifelong love for learning</p>
         </div>
         
         <div class="about-content">
-            <div class="about-card">
+            <div class="about-card" data-aos="fade-right" data-aos-delay="100">
                 <h3>Library Organization</h3>
                 <p>Our library collection is carefully classified using the Dewey Decimal Classification (DDC) system and sorted alphabetically. This structured approach helps students effortlessly learn subject categories while easily locating their favorite reads.</p>
             </div>
             
-            <div class="about-card col-span-2">
+            <div class="about-card col-span-2" data-aos="fade-left" data-aos-delay="200">
                 <h3>Enriching Monthly Activities</h3>
                 <p>To enrich young minds, we organize 12 exciting, grade-wide activities annually—one every month alongside regular book issuances. These events are designed to spark imagination and boost focus. Some of our favorites include:</p>
                 <ul class="activity-list">
@@ -74,7 +76,7 @@
 
     <!-- Catalog Section -->
     <section id="catalog" class="section">
-        <div class="section-header">
+        <div class="section-header" data-aos="fade-up">
             <h2>Library Catalog Search Results</h2>
             <p>Explore our active inventory</p>
         </div>
@@ -107,25 +109,25 @@
 
     <!-- Pictures Section -->
     <section id="gallery" class="section">
-        <div class="section-header">
+        <div class="section-header" data-aos="fade-up">
             <h2>Library Gallery</h2>
             <p>Glimpses of our reading spaces, events, and student activities</p>
         </div>
         
         <div class="gallery-grid">
-            <div class="gallery-item">
+            <div class="gallery-item" data-aos="zoom-in" data-aos-delay="100">
                 <img src="lib1.jpg" alt="Our Library Space">
                 <div class="gallery-caption">Our Library Space</div>
             </div>
-            <div class="gallery-item">
+            <div class="gallery-item" data-aos="zoom-in" data-aos-delay="200">
                 <img src="lib2.jpg" alt="Fiction">
                  <div class="gallery-caption">Fiction</div>
             </div>
-            <div class="gallery-item">
+            <div class="gallery-item" data-aos="zoom-in" data-aos-delay="300">
                 <img src="lib3.jpg" alt="Magazine Corner">
                  <div class="gallery-caption">Magazine Corner</div>
             </div>
-            <div class="gallery-item">
+            <div class="gallery-item" data-aos="zoom-in" data-aos-delay="400">
                 <img src="lib4.jpg" alt="Study Area">
                  <div class="gallery-caption">Study Area</div>
             </div>
@@ -134,13 +136,13 @@
 
     <!-- Videos Section -->
     <section id="media" class="section">
-        <div class="section-header">
+        <div class="section-header" data-aos="fade-up">
             <h2>Video Resources</h2>
             <p>Educational videos, library tutorials, and recorded guest lectures</p>
         </div>
         
         <div class="video-grid">
-            <div class="video-item" style="background: linear-gradient(to right, #2b3040, #161b22);">
+            <div class="video-item" style="background: linear-gradient(to right, #2b3040, #161b22);" data-aos="fade-right">
                 <div class="play-button"></div>
                 <div style="position: absolute; bottom: 20px; left: 20px;">
                     <h3 style="color: white; font-size: 1.1rem; margin-bottom: 5px;">How to use the Digital Catalog</h3>
@@ -148,7 +150,7 @@
                 </div>
             </div>
             
-            <div class="video-item" style="background: linear-gradient(to right, #382b40, #161b22);">
+            <div class="video-item" style="background: linear-gradient(to right, #382b40, #161b22);" data-aos="fade-left">
                 <div class="play-button"></div>
                  <div style="position: absolute; bottom: 20px; left: 20px;">
                     <h3 style="color: white; font-size: 1.1rem; margin-bottom: 5px;">Author Meet & Greet Highlights</h3>
@@ -309,6 +311,15 @@
         });
         document.addEventListener('keydown', (e) => {
             if(e.key === 'Escape' && lightbox.style.display === 'flex') closeLightbox();
+        });
+    </script>
+    
+    <!-- AOS Animation Initialization Script -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            once: true, // whether animation should happen only once - while scrolling down
+            offset: 50, // offset (in px) from the original trigger point
         });
     </script>
 </body>
