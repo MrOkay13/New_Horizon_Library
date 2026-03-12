@@ -111,7 +111,7 @@ body {
 
 .hero-content {
   position: relative;
-  z-index: 2;
+  z-index: 50;
 }
 
 /* Background Glow Effects */
@@ -592,6 +592,7 @@ footer {
   
   .hero {
     padding: 6rem 5% 4rem;
+    overflow: visible;
   }
 
   .hero h1 { 
@@ -603,20 +604,25 @@ footer {
   }
 
   .search-container {
-    flex-direction: column;
-    border-radius: 16px;
-    gap: 0.5rem;
+    flex-direction: row;
+    border-radius: 50px;
+    padding: 0.35rem;
+  }
+
+  .autocomplete-dropdown {
+    max-height: 200px;
   }
 
   .search-input {
-    width: 100%;
-    border-radius: 16px;
+    width: auto;
+    font-size: 0.9rem;
+    padding: 0.75rem 1rem;
   }
 
   .search-btn {
-    width: 100%;
-    padding: 1rem;
-    border-radius: 16px;
+    width: auto;
+    padding: 0 1.25rem;
+    font-size: 0.9rem;
   }
 
   .section {
