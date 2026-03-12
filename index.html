@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Horizon International School Library</title>
-    <link rel="stylesheet" href="styles.css?v=1.1">
+    <link rel="stylesheet" href="styles.css?v=1.2">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- AOS CSS for Scroll Animations -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -100,14 +100,31 @@
                 <div class="card-desc">Browse our collection of e-books, online encyclopedias, and digital academic databases.</div>
             </div>
             
-            <div class="card">
+            <div class="card" style="cursor: pointer; transition: transform 0.2s; border: 1px solid var(--border);" onclick="document.getElementById('reference-catalog').scrollIntoView({ behavior: 'smooth' }); document.getElementById('referenceSearchInput').focus();" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-5px)';" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)';">
                 <div class="card-icon">🎓</div>
                 <div class="card-title">Study Materials</div>
-                <div class="card-desc">Find syllabus-aligned reference materials, past papers, and study guides for all grades.</div>
+                <div class="card-desc">Find syllabus-aligned reference materials and study guides. <br><strong style="color: var(--primary);">Click here to search our exclusive Reference Materials!</strong></div>
             </div>
         </div>
     </section>
+    <!-- Reference Catalog Section -->
+    <section id="reference-catalog" class="section" style="background: rgba(13, 17, 23, 0.4); border-top: 1px solid var(--border);">
+        <div class="section-header" data-aos="fade-up">
+            <h2 style="color: var(--accent);">Reference Materials</h2>
+            <p>Exclusive Search for Reference Materials</p>
+        </div>
 
+        <div class="search-container" data-aos="fade-up" data-aos-delay="100" style="max-width: 600px; margin: 0 auto 3rem auto; position: relative;">
+            <input type="text" id="referenceSearchInput" class="search-input" placeholder="Search reference title, author, subject...">
+            <button id="referenceSearchBtn" class="search-btn" style="background: linear-gradient(135deg, var(--accent), #e54b8a);">Search References</button>
+            <div id="reference-autocomplete-results" class="autocomplete-dropdown"></div>
+        </div>
+
+        <!-- Reference Search Results Details -->
+        <div id="referenceSearchResults" class="catalog-grid" style="display: none;">
+            <!-- Dynamically populated from JS -->
+        </div>
+    </section>
     <!-- Pictures Section -->
     <section id="gallery" class="section">
         <div class="section-header" data-aos="fade-up">
@@ -176,9 +193,11 @@
 
     <!-- Script for handling the inventory CSV and search -->
     <script>
+        // --- Main Catalog Logic ---
         let libraryData = [];
+        let referenceData = [];
 
-        // Fetch and parse the CSV data
+        // Load Main Inventory
         fetch('inventory_data.csv')
             .then(response => response.text())
             .then(csvText => {
@@ -187,11 +206,26 @@
                     skipEmptyLines: true,
                     complete: function(results) {
                         libraryData = results.data;
-                        console.log("Loaded " + libraryData.length + " books from inventory.");
+                        console.log("Loaded " + libraryData.length + " books from main inventory.");
                     }
                 });
             })
-            .catch(error => console.error("Could not load inventory data:", error));
+            .catch(error => console.error("Could not load main inventory data:", error));
+
+        // Load Reference Inventory
+        fetch('reference_data.csv')
+            .then(response => response.text())
+            .then(csvText => {
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        referenceData = results.data;
+                        console.log("Loaded " + referenceData.length + " books from reference inventory.");
+                    }
+                });
+            })
+            .catch(error => console.error("Could not load reference inventory data:", error));
 
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
@@ -223,8 +257,8 @@
             displayLimit = 100;
             displayResults(query);
             
-            // Scroll to catalog section automatically
-            document.getElementById('catalog').scrollIntoView({ behavior: 'smooth' });
+            // Scroll to search results section automatically
+            searchResultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function displayResults(query) {
@@ -366,10 +400,185 @@
             autocompleteContainer.style.display = 'flex';
         });
 
-        // Hide autocomplete when clicking outside
+        // Hide main autocomplete when clicking outside
         document.addEventListener('click', function(e) {
             if (!searchInput.contains(e.target) && !autocompleteContainer.contains(e.target)) {
                 autocompleteContainer.style.display = 'none';
+            }
+        });
+
+        // --- Reference Catalog Search Logic ---
+        const refSearchInput = document.getElementById('referenceSearchInput');
+        const refSearchBtn = document.getElementById('referenceSearchBtn');
+        const refSearchResultsContainer = document.getElementById('referenceSearchResults');
+        const refAutocompleteContainer = document.getElementById('reference-autocomplete-results');
+
+        let currentRefResults = [];
+        let displayRefLimit = 100;
+
+        function performRefSearch() {
+            const query = refSearchInput.value.toLowerCase().trim();
+            if (!query) {
+                refSearchResultsContainer.style.display = 'none';
+                return;
+            }
+
+            currentRefResults = referenceData.filter(item => {
+                const title = (item['TITLE'] || '').toLowerCase();
+                const author = (item['AUTHOR'] || '').toLowerCase();
+                const subject = (item['Subject'] || '').toLowerCase();
+                const publisher = (item['PUBLISHER'] || '').toLowerCase();
+                const accession = (item['ACCESSION NO'] || '').toLowerCase();
+                
+                return title.includes(query) || author.includes(query) || subject.includes(query) || publisher.includes(query) || accession.includes(query);
+            });
+
+            displayRefLimit = 100;
+            displayRefResults(query);
+            
+            // Scroll to ref search results automatically
+            refSearchResultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function displayRefResults(query) {
+            refSearchResultsContainer.style.display = 'grid';
+            refSearchResultsContainer.innerHTML = '';
+
+            if (currentRefResults.length === 0) {
+                refSearchResultsContainer.innerHTML = `<div class="card" style="grid-column: 1 / -1; text-align: center;">
+                    <div class="card-icon">🔍</div>
+                    <div class="card-title">No Reference Found</div>
+                    <div class="card-desc">We couldn't find any reference materials matching "${query}".</div>
+                </div>`;
+                return;
+            }
+
+            const displayCount = Math.min(currentRefResults.length, displayRefLimit);
+            
+            for (let i = 0; i < displayCount; i++) {
+                const book = currentRefResults[i];
+                const title = book['TITLE'] || 'Unknown Title';
+                const author = book['AUTHOR'] || 'Unknown Author';
+                const subject = book['Subject'] || 'General';
+                const year = book['YEAR'] || 'N/A';
+                const publisher = book['PUBLISHER'] || 'Unknown';
+                const accession = book['ACCESSION NO'] || 'N/A';
+
+                const card = document.createElement('div');
+                card.className = 'card inventory-card';
+                card.innerHTML = `
+                    <div class="card-icon" style="background: linear-gradient(135deg, var(--accent), #e54b8a); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🎓</div>
+                    <div class="card-title">${title} <span style="font-size: 0.8rem; color: var(--accent); margin-left: 5px;">[${year}]</span></div>
+                    <div class="card-desc">
+                        <strong style="color: var(--text-main);"><span style="color: var(--text-muted); font-size: 0.9em; font-weight: normal;">Author:</span> ${author}</strong><br>
+                        <span style="font-size: 0.9em;">
+                            <span style="color: var(--accent);">Subject:</span> ${subject} &nbsp;|&nbsp;
+                            <span style="color: var(--accent);">Publisher:</span> ${publisher} <br>
+                            <span style="color: var(--text-muted);">Accession No: ${accession}</span>
+                        </span>
+                    </div>
+                `;
+                refSearchResultsContainer.appendChild(card);
+            }
+
+            if (currentRefResults.length > displayRefLimit) {
+                const moreCard = document.createElement('div');
+                moreCard.className = 'card';
+                moreCard.style.display = 'grid';
+                moreCard.style.alignItems = 'center';
+                moreCard.style.justifyContent = 'center';
+                moreCard.style.cursor = 'pointer';
+                moreCard.style.border = '2px dashed var(--accent)';
+                moreCard.onclick = function() {
+                    displayRefLimit += 100;
+                    displayRefResults(query);
+                };
+                moreCard.innerHTML = `<div class="card-desc" style="text-align: center; color: var(--accent); font-weight: bold; font-size: 1.1rem;">➕ Load More References<br><span style="font-size: 0.8em; color: var(--text-muted); font-weight: normal;">(${currentRefResults.length - displayRefLimit} remaining)</span></div>`;
+                refSearchResultsContainer.appendChild(moreCard);
+            }
+        }
+
+        refSearchBtn.addEventListener('click', performRefSearch);
+        refSearchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                refAutocompleteContainer.style.display = 'none';
+                performRefSearch();
+            }
+        });
+
+        refSearchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            
+            if (!query) {
+                refAutocompleteContainer.style.display = 'none';
+                return;
+            }
+
+            let matches = referenceData.filter(item => {
+                const title = (item['TITLE'] || '').toLowerCase();
+                const author = (item['AUTHOR'] || '').toLowerCase();
+                return title.includes(query) || author.includes(query);
+            });
+
+            let uniqueTitles = new Set();
+            let uniqueMatches = [];
+            for (let item of matches) {
+                let title = (item['TITLE'] || '').trim();
+                let author = (item['AUTHOR'] || '').trim();
+                let uniqueKey = title + '|' + author;
+                
+                if (title && !uniqueTitles.has(uniqueKey)) {
+                    uniqueTitles.add(uniqueKey);
+                    
+                    let sortTitle = title;
+                    const lwr = title.toLowerCase();
+                    if (lwr.startsWith('a ')) sortTitle = title.substring(2);
+                    else if (lwr.startsWith('an ')) sortTitle = title.substring(3);
+                    else if (lwr.startsWith('the ')) sortTitle = title.substring(4);
+                    
+                    uniqueMatches.push({ item: item, sortTitle: sortTitle.trim() });
+                }
+            }
+
+            uniqueMatches.sort((a, b) => a.sortTitle.localeCompare(b.sortTitle));
+            matches = uniqueMatches.map(m => m.item).slice(0, 15);
+
+            refAutocompleteContainer.innerHTML = '';
+            
+            if (matches.length === 0) {
+                refAutocompleteContainer.style.display = 'none';
+                return;
+            }
+
+            matches.forEach(match => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                
+                const title = match['TITLE'] || 'Unknown';
+                const author = match['AUTHOR'] || '';
+                
+                const regex = new RegExp(`(${query})`, 'gi');
+                const highlightedTitle = title.replace(regex, '<strong>$1</strong>');
+                const authorText = author ? ` <span style="font-size: 0.8em; color: var(--text-muted);">by ${author}</span>` : '';
+                
+                div.innerHTML = `📚 ${highlightedTitle}${authorText}`;
+                
+                div.addEventListener('click', () => {
+                    refSearchInput.value = title;
+                    refAutocompleteContainer.style.display = 'none';
+                    performRefSearch();
+                });
+                
+                refAutocompleteContainer.appendChild(div);
+            });
+
+            refAutocompleteContainer.style.display = 'flex';
+        });
+
+        // Hide ref autocomplete when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!refSearchInput.contains(e.target) && !refAutocompleteContainer.contains(e.target)) {
+                refAutocompleteContainer.style.display = 'none';
             }
         });
 

@@ -586,7 +586,12 @@ footer {
     gap: 1rem;
     text-align: center;
   }
-  
+
+  .logo-container {
+    justify-content: center;
+    width: 100%;
+  }
+
   .nav-links {
     flex-wrap: wrap;
     justify-content: center;
@@ -611,6 +616,7 @@ footer {
     border-radius: 50px;
     padding: 0.35rem;
     width: 100%;
+    box-sizing: border-box;
   }
 
   .autocomplete-dropdown {
@@ -654,12 +660,14 @@ footer {
 
   .inventory-card {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
     grid-template-rows: auto auto;
     column-gap: 1rem;
     row-gap: 0.25rem;
     padding: 1rem;
     text-align: left;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .inventory-card .card-icon {
@@ -675,11 +683,15 @@ footer {
     grid-column: 2;
     font-size: 1.1rem;
     margin-bottom: 0;
+    word-break: break-word;
+    hyphens: auto;
   }
 
   .inventory-card .card-desc {
     grid-row: 2;
     grid-column: 2;
+    word-break: break-word;
+    hyphens: auto;
   }
 
   .gallery-grid {
