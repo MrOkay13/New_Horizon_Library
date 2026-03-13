@@ -255,6 +255,49 @@
             })
             .catch(error => console.error("Could not load reference inventory data:", error));
 
+        // --- Google Books API Summary Fetcher ---
+        let booksMissingSummaries = [];
+
+        async function fetchBookSummary(title, author, publisher) {
+            if (!title) return null;
+            
+            // Construct a robust query using available data
+            let queryParts = [`intitle:${encodeURIComponent(title)}`];
+            if (author && author.toLowerCase() !== 'unknown author') {
+                queryParts.push(`inauthor:${encodeURIComponent(author)}`);
+            }
+            if (publisher && publisher.toLowerCase() !== 'unknown') {
+                queryParts.push(`inpublisher:${encodeURIComponent(publisher)}`);
+            }
+            
+            const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${queryParts.join('+')}&maxResults=1`;
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                if (data.items && data.items.length > 0) {
+                    const volumeInfo = data.items[0].volumeInfo;
+                    if (volumeInfo.description) {
+                        // Truncate to 250 characters
+                        let desc = volumeInfo.description;
+                        if (desc.length > 250) {
+                            desc = desc.substring(0, 247) + '...';
+                        }
+                        return desc;
+                    }
+                }
+                
+                // Track books missing summaries
+                booksMissingSummaries.push({title, author, publisher});
+                return null;
+
+            } catch (error) {
+                console.error("Error fetching summary for", title, error);
+                return null;
+            }
+        }
+
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
         const searchResultsContainer = document.getElementById('searchResults');
@@ -315,6 +358,10 @@
                 
                 const card = document.createElement('div');
                 card.className = 'card inventory-card';
+                
+                // Unique ID for the summary container
+                const summaryId = `summary-main-${i}`;
+
                 card.innerHTML = `
                     <div class="card-icon" style="font-size: 2rem;">📚</div>
                     <div class="card-title">${title}</div>
@@ -323,8 +370,28 @@
                         <strong>Subject:</strong> ${subject}<br>
                         <strong>Ref:</strong> <span style="font-size:0.85em; opacity:0.8">${acc}</span>
                     </div>
+                    <div id="${summaryId}" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.9em; color: var(--text-muted); font-style: italic;">
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <span class="loading-spinner" style="width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></span>
+                            Fetching summary...
+                        </span>
+                    </div>
                 `;
                 searchResultsContainer.appendChild(card);
+
+                // Asynchronously fetch and inject the summary
+                setTimeout(() => {
+                    fetchBookSummary(title, author, null).then(summary => {
+                        const summaryContainer = document.getElementById(summaryId);
+                        if (summaryContainer) {
+                            if (summary) {
+                                summaryContainer.innerHTML = `<strong style="color: var(--text-main); font-style: normal; font-size: 0.85rem; display: block; margin-bottom: 4px;">Summary:</strong> ${summary}`;
+                            } else {
+                                summaryContainer.style.display = 'none'; // Hide if no summary
+                            }
+                        }
+                    });
+                }, i * 200); // Stagger API requests slightly to prevent rate limiting
             }
 
             if (currentResults.length > displayLimit) {
@@ -500,6 +567,10 @@
 
                 const card = document.createElement('div');
                 card.className = 'card inventory-card';
+                
+                // Unique ID for the summary container
+                const summaryId = `summary-ref-${i}`;
+
                 card.innerHTML = `
                     <div class="card-icon" style="background: linear-gradient(135deg, var(--accent), #e54b8a); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🎓</div>
                     <div class="card-title">${title} <span style="font-size: 0.8rem; color: var(--accent); margin-left: 5px;">[${year}]</span></div>
@@ -511,8 +582,28 @@
                             <span style="color: var(--text-muted);">Accession No: ${accession}</span>
                         </span>
                     </div>
+                    <div id="${summaryId}" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.9em; color: var(--text-muted); font-style: italic;">
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <span class="loading-spinner" style="width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></span>
+                            Fetching summary...
+                        </span>
+                    </div>
                 `;
                 refSearchResultsContainer.appendChild(card);
+
+                // Asynchronously fetch and inject the summary
+                setTimeout(() => {
+                    fetchBookSummary(title, author, publisher).then(summary => {
+                        const summaryContainer = document.getElementById(summaryId);
+                        if (summaryContainer) {
+                            if (summary) {
+                                summaryContainer.innerHTML = `<strong style="color: var(--text-main); font-style: normal; font-size: 0.85rem; display: block; margin-bottom: 4px;">Summary:</strong> ${summary}`;
+                            } else {
+                                summaryContainer.style.display = 'none'; // Hide if no summary
+                            }
+                        }
+                    });
+                }, i * 200); // Stagger API requests
             }
 
             if (currentRefResults.length > displayRefLimit) {
