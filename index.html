@@ -261,41 +261,58 @@
         async function fetchBookSummary(title, author, publisher) {
             if (!title) return null;
             
-            // Construct a robust query using available data
-            let queryParts = [`intitle:${encodeURIComponent(title)}`];
-            if (author && author.toLowerCase() !== 'unknown author') {
-                queryParts.push(`inauthor:${encodeURIComponent(author)}`);
-            }
-            if (publisher && publisher.toLowerCase() !== 'unknown') {
-                queryParts.push(`inpublisher:${encodeURIComponent(publisher)}`);
-            }
-            
-            const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${queryParts.join('+')}&maxResults=1`;
-
-            try {
-                const response = await fetch(apiUrl);
-                const data = await response.json();
-                
-                if (data.items && data.items.length > 0) {
-                    const volumeInfo = data.items[0].volumeInfo;
-                    if (volumeInfo.description) {
-                        // Truncate to 250 characters
-                        let desc = volumeInfo.description;
-                        if (desc.length > 250) {
-                            desc = desc.substring(0, 247) + '...';
+            // Helper function to hit the API with a specific query structure
+            const fetchWithQuery = async (queryStr) => {
+                const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${queryStr}&maxResults=1`;
+                try {
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    if (data.items && data.items.length > 0) {
+                        const volumeInfo = data.items[0].volumeInfo;
+                        if (volumeInfo.description) {
+                            let desc = volumeInfo.description;
+                            if (desc.length > 250) desc = desc.substring(0, 247) + '...';
+                            return desc;
                         }
-                        return desc;
                     }
-                }
-                
-                // Track books missing summaries
-                booksMissingSummaries.push({title, author, publisher});
-                return null;
+                    return null;
+                } catch(e) { return null; }
+            };
 
-            } catch (error) {
-                console.error("Error fetching summary for", title, error);
-                return null;
+            // Safely format variables
+            const safeTitle = encodeURIComponent(title.trim());
+            const safeAuthor = (author && author.toLowerCase() !== 'unknown author') ? encodeURIComponent(author.trim()) : null;
+            const safePub = (publisher && publisher.toLowerCase() !== 'unknown') ? encodeURIComponent(publisher.trim()) : null;
+
+            let result = null;
+
+            // Tier 1: Strict Search (Title + Author + Publisher)
+            if (safeAuthor && safePub) {
+                result = await fetchWithQuery(`intitle:${safeTitle}+inauthor:${safeAuthor}+inpublisher:${safePub}`);
             }
+
+            // Tier 2: Medium Search (Title + Author)
+            if (!result && safeAuthor) {
+                result = await fetchWithQuery(`intitle:${safeTitle}+inauthor:${safeAuthor}`);
+            }
+
+            // Tier 3: Loose Search (Title exact match)
+            if (!result) {
+                result = await fetchWithQuery(`intitle:${safeTitle}`);
+            }
+
+            // Tier 4: Broad Search (Just the string, no strict `intitle:` requirement)
+            if (!result) {
+               // strip out problematic characters that usually break broad API searches
+               let broadString = title.replace(/[\[\]\(\)\*:;]/g, ' ').trim();
+               result = await fetchWithQuery(`${encodeURIComponent(broadString)}`);
+            }
+
+            if (result) return result;
+            
+            // Track books missing summaries
+            booksMissingSummaries.push({title, author, publisher});
+            return null;
         }
 
         const searchInput = document.getElementById('searchInput');
