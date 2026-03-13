@@ -255,64 +255,54 @@
             })
             .catch(error => console.error("Could not load reference inventory data:", error));
 
-        // --- Google Books API Summary Fetcher ---
+        // --- OpenLibrary API Summary Fetcher ---
         let booksMissingSummaries = [];
 
         async function fetchBookSummary(title, author, publisher) {
             if (!title) return null;
             
-            // Helper function to hit the API with a specific query structure
-            const fetchWithQuery = async (queryStr) => {
-                const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${queryStr}&maxResults=1`;
-                try {
-                    const response = await fetch(apiUrl);
-                    const data = await response.json();
-                    if (data.items && data.items.length > 0) {
-                        const volumeInfo = data.items[0].volumeInfo;
-                        if (volumeInfo.description) {
-                            let desc = volumeInfo.description;
-                            if (desc.length > 250) desc = desc.substring(0, 247) + '...';
-                            return desc;
-                        }
+            // Clean up the title for better searching
+            const cleanTitle = title.replace(/[\[\]\(\)\*:;]/g, ' ').trim();
+            const searchUrl = `https://openlibrary.org/search.json?title=${encodeURIComponent(cleanTitle)}&limit=1`;
+
+            try {
+                // Step 1: Find the book's OpenLibrary Key
+                const searchRes = await fetch(searchUrl);
+                const searchData = await searchRes.json();
+                
+                if (searchData.docs && searchData.docs.length > 0) {
+                    const bookKey = searchData.docs[0].key;
+                    
+                    // Step 2: Fetch the actual Work details to get the summary
+                    const workUrl = `https://openlibrary.org${bookKey}.json`;
+                    const workRes = await fetch(workUrl);
+                    const workData = await workRes.json();
+                    
+                    let desc = null;
+                    if (typeof workData.description === 'string') {
+                        desc = workData.description;
+                    } else if (workData.description && workData.description.value) {
+                        desc = workData.description.value;
                     }
-                    return null;
-                } catch(e) { return null; }
-            };
 
-            // Safely format variables
-            const safeTitle = encodeURIComponent(title.trim());
-            const safeAuthor = (author && author.toLowerCase() !== 'unknown author') ? encodeURIComponent(author.trim()) : null;
-            const safePub = (publisher && publisher.toLowerCase() !== 'unknown') ? encodeURIComponent(publisher.trim()) : null;
+                    if (desc) {
+                        // Clean up markdown/extra text often found in OpenLibrary descriptions and truncate to 250
+                        desc = desc.split(/[\r\n]+/)[0]; // take just the first paragraph
+                        if (desc.length > 250) {
+                            desc = desc.substring(0, 247) + '...';
+                        }
+                        return desc;
+                    }
+                }
+                
+                // Track books missing summaries
+                booksMissingSummaries.push({title, author, publisher});
+                return null;
 
-            let result = null;
-
-            // Tier 1: Strict Search (Title + Author + Publisher)
-            if (safeAuthor && safePub) {
-                result = await fetchWithQuery(`intitle:${safeTitle}+inauthor:${safeAuthor}+inpublisher:${safePub}`);
+            } catch (error) {
+                console.error("OpenLibrary Error fetching summary for", title, error);
+                return null;
             }
-
-            // Tier 2: Medium Search (Title + Author)
-            if (!result && safeAuthor) {
-                result = await fetchWithQuery(`intitle:${safeTitle}+inauthor:${safeAuthor}`);
-            }
-
-            // Tier 3: Loose Search (Title exact match)
-            if (!result) {
-                result = await fetchWithQuery(`intitle:${safeTitle}`);
-            }
-
-            // Tier 4: Broad Search (Just the string, no strict `intitle:` requirement)
-            if (!result) {
-               // strip out problematic characters that usually break broad API searches
-               let broadString = title.replace(/[\[\]\(\)\*:;]/g, ' ').trim();
-               result = await fetchWithQuery(`${encodeURIComponent(broadString)}`);
-            }
-
-            if (result) return result;
-            
-            // Track books missing summaries
-            booksMissingSummaries.push({title, author, publisher});
-            return null;
         }
 
         const searchInput = document.getElementById('searchInput');
@@ -396,21 +386,19 @@
                 `;
                 searchResultsContainer.appendChild(card);
 
-                // Asynchronously fetch and inject the summary, but massively throttle it
-                // Only auto-fetch for the top 5 results to prevent API rate limiting
-                if (i < 5) {
-                    setTimeout(() => {
-                        fetchBookSummary(title, author, null).then(summary => {
-                            const summaryContainer = document.getElementById(summaryId);
-                            if (summaryContainer) {
-                                if (summary) {
-                                    summaryContainer.innerHTML = `<strong style="color: var(--text-main); font-style: normal; font-size: 0.85rem; display: block; margin-bottom: 4px;">Summary:</strong> ${summary}`;
-                                } else {
-                                    summaryContainer.style.display = 'none'; // Hide if no summary
-                                }
+                // Asynchronously fetch and inject the summary
+                // OpenLibrary handles volume better, so we can fetch all on render but let's stick to 10 automatically.
+                if (i < 10) {
+                    fetchBookSummary(title, author, null).then(summary => {
+                        const summaryContainer = document.getElementById(summaryId);
+                        if (summaryContainer) {
+                            if (summary) {
+                                summaryContainer.innerHTML = `<strong style="color: var(--text-main); font-style: normal; font-size: 0.85rem; display: block; margin-bottom: 4px;">Summary:</strong> ${summary}`;
+                            } else {
+                                summaryContainer.style.display = 'none'; // Hide if no summary
                             }
-                        });
-                    }, i * 1500); // 1.5 seconds per request
+                        }
+                    });
                 } else {
                     const summaryContainer = document.getElementById(summaryId);
                     if (summaryContainer) {
@@ -616,21 +604,18 @@
                 `;
                 refSearchResultsContainer.appendChild(card);
 
-                // Asynchronously fetch and inject the summary, but massively throttle it
-                // Only auto-fetch for the top 5 results to prevent API rate limiting
-                if (i < 5) {
-                    setTimeout(() => {
-                        fetchBookSummary(title, author, publisher).then(summary => {
-                            const summaryContainer = document.getElementById(summaryId);
-                            if (summaryContainer) {
-                                if (summary) {
-                                    summaryContainer.innerHTML = `<strong style="color: var(--text-main); font-style: normal; font-size: 0.85rem; display: block; margin-bottom: 4px;">Summary:</strong> ${summary}`;
-                                } else {
-                                    summaryContainer.style.display = 'none'; // Hide if no summary
-                                }
+                // Asynchronously fetch and inject the summary
+                if (i < 10) {
+                    fetchBookSummary(title, author, publisher).then(summary => {
+                        const summaryContainer = document.getElementById(summaryId);
+                        if (summaryContainer) {
+                            if (summary) {
+                                summaryContainer.innerHTML = `<strong style="color: var(--text-main); font-style: normal; font-size: 0.85rem; display: block; margin-bottom: 4px;">Summary:</strong> ${summary}`;
+                            } else {
+                                summaryContainer.style.display = 'none'; // Hide if no summary
                             }
-                        });
-                    }, i * 1500); // 1.5 seconds per request
+                        }
+                    });
                 } else {
                      const summaryContainer = document.getElementById(summaryId);
                      if (summaryContainer) {
