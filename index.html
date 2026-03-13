@@ -255,54 +255,30 @@
             })
             .catch(error => console.error("Could not load reference inventory data:", error));
 
-        // --- OpenLibrary API Summary Fetcher ---
+        // --- Load pre-built summaries from local JSON ---
+        let summaryLookup = {};
         let booksMissingSummaries = [];
 
-        async function fetchBookSummary(title, author, publisher) {
+        fetch('summaries.json')
+            .then(response => response.json())
+            .then(data => {
+                summaryLookup = data;
+                console.log("Loaded " + Object.keys(summaryLookup).length + " pre-fetched book summaries.");
+            })
+            .catch(err => console.warn("Could not load summaries.json - summaries will not be shown:", err));
+
+        function findSummary(title) {
             if (!title) return null;
-            
-            // Clean up the title for better searching
-            const cleanTitle = title.replace(/[\[\]\(\)\*:;]/g, ' ').trim();
-            const searchUrl = `https://openlibrary.org/search.json?title=${encodeURIComponent(cleanTitle)}&limit=1`;
-
-            try {
-                // Step 1: Find the book's OpenLibrary Key
-                const searchRes = await fetch(searchUrl);
-                const searchData = await searchRes.json();
-                
-                if (searchData.docs && searchData.docs.length > 0) {
-                    const bookKey = searchData.docs[0].key;
-                    
-                    // Step 2: Fetch the actual Work details to get the summary
-                    const workUrl = `https://openlibrary.org${bookKey}.json`;
-                    const workRes = await fetch(workUrl);
-                    const workData = await workRes.json();
-                    
-                    let desc = null;
-                    if (typeof workData.description === 'string') {
-                        desc = workData.description;
-                    } else if (workData.description && workData.description.value) {
-                        desc = workData.description.value;
-                    }
-
-                    if (desc) {
-                        // Clean up markdown/extra text often found in OpenLibrary descriptions and truncate to 250
-                        desc = desc.split(/[\r\n]+/)[0]; // take just the first paragraph
-                        if (desc.length > 250) {
-                            desc = desc.substring(0, 247) + '...';
-                        }
-                        return desc;
-                    }
-                }
-                
-                // Track books missing summaries
-                booksMissingSummaries.push({title, author, publisher});
-                return null;
-
-            } catch (error) {
-                console.error("OpenLibrary Error fetching summary for", title, error);
-                return null;
+            // Direct match
+            if (summaryLookup[title]) return summaryLookup[title];
+            // Case-insensitive fallback
+            const lower = title.toLowerCase();
+            for (const key of Object.keys(summaryLookup)) {
+                if (key.toLowerCase() === lower) return summaryLookup[key];
             }
+            // Track missing
+            booksMissingSummaries.push(title);
+            return null;
         }
 
         const searchInput = document.getElementById('searchInput');
@@ -386,23 +362,14 @@
                 `;
                 searchResultsContainer.appendChild(card);
 
-                // Asynchronously fetch and inject the summary
-                // OpenLibrary handles volume better, so we can fetch all on render but let's stick to 10 automatically.
-                if (i < 10) {
-                    fetchBookSummary(title, author, null).then(summary => {
-                        const summaryContainer = document.getElementById(summaryId);
-                        if (summaryContainer) {
-                            if (summary) {
-                                summaryContainer.innerHTML = `<strong style="color: var(--text-main); font-style: normal; font-size: 0.85rem; display: block; margin-bottom: 4px;">Summary:</strong> ${summary}`;
-                            } else {
-                                summaryContainer.style.display = 'none'; // Hide if no summary
-                            }
-                        }
-                    });
-                } else {
-                    const summaryContainer = document.getElementById(summaryId);
-                    if (summaryContainer) {
-                        summaryContainer.innerHTML = `<span style="cursor: pointer; color: var(--primary); text-decoration: underline;" onclick="this.innerHTML='<span class=\\'loading-spinner\\' style=\\'width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle;\\'></span> Fetching...'; fetchBookSummary('${title.replace(/'/g, "\\'")}', '${author.replace(/'/g, "\\'")}', null).then(s => { const c = document.getElementById('${summaryId}'); if (s) { c.innerHTML = '<strong style=\\'color: var(--text-main); font-style: normal; font-size: 0.85rem; display: block; margin-bottom: 4px;\\'>Summary:</strong> ' + s; } else { c.style.display = 'none'; } })">Load Summary</span>`;
+                // Instantly look up the summary from the pre-built local lookup
+                const summary = findSummary(title);
+                const summaryContainer = document.getElementById(summaryId);
+                if (summaryContainer) {
+                    if (summary) {
+                        summaryContainer.innerHTML = `<strong style="color: var(--text-main); font-style: normal; font-size: 0.85rem; display: block; margin-bottom: 4px;">Summary:</strong> ${summary}`;
+                    } else {
+                        summaryContainer.style.display = 'none';
                     }
                 }
             }
@@ -604,23 +571,15 @@
                 `;
                 refSearchResultsContainer.appendChild(card);
 
-                // Asynchronously fetch and inject the summary
-                if (i < 10) {
-                    fetchBookSummary(title, author, publisher).then(summary => {
-                        const summaryContainer = document.getElementById(summaryId);
-                        if (summaryContainer) {
-                            if (summary) {
-                                summaryContainer.innerHTML = `<strong style="color: var(--text-main); font-style: normal; font-size: 0.85rem; display: block; margin-bottom: 4px;">Summary:</strong> ${summary}`;
-                            } else {
-                                summaryContainer.style.display = 'none'; // Hide if no summary
-                            }
-                        }
-                    });
-                } else {
-                     const summaryContainer = document.getElementById(summaryId);
-                     if (summaryContainer) {
-                         summaryContainer.innerHTML = `<span style="cursor: pointer; color: var(--primary); text-decoration: underline;" onclick="this.innerHTML='<span class=\\'loading-spinner\\' style=\\'width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle;\\'></span> Fetching...'; fetchBookSummary('${title.replace(/'/g, "\\'")}', '${author.replace(/'/g, "\\'")}', '${publisher.replace(/'/g, "\\'")}').then(s => { const c = document.getElementById('${summaryId}'); if (s) { c.innerHTML = '<strong style=\\'color: var(--text-main); font-style: normal; font-size: 0.85rem; display: block; margin-bottom: 4px;\\'>Summary:</strong> ' + s; } else { c.style.display = 'none'; } })">Load Summary</span>`;
-                     }
+                // Instantly look up the summary from the pre-built local lookup
+                const summary = findSummary(title);
+                const summaryContainer = document.getElementById(summaryId);
+                if (summaryContainer) {
+                    if (summary) {
+                        summaryContainer.innerHTML = `<strong style="color: var(--text-main); font-style: normal; font-size: 0.85rem; display: block; margin-bottom: 4px;">Summary:</strong> ${summary}`;
+                    } else {
+                        summaryContainer.style.display = 'none';
+                    }
                 }
             }
 
