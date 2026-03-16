@@ -697,6 +697,11 @@ footer {
     hyphens: auto;
   }
 
+  .inventory-card .summary-block {
+    grid-column: 1 / -1;
+    word-break: break-word;
+  }
+
   .gallery-grid {
     grid-template-columns: 1fr;
   }
